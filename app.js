@@ -18,6 +18,9 @@ const bookingRouter = require('./routes/bookingRoutes');
 
 const app = express();
 
+
+app.enable('trust proxy');
+
 //Setting up PUG Template Engine.
 app.set('view engine', 'pug');
 //path module automatically assing path to given rootDirectory.
