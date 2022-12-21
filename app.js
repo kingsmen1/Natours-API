@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const compression = require('compression');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cors = require('cors');
 const globalErrorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
 const tourRouter = require('./routes/tourRoutes');
@@ -18,7 +19,6 @@ const bookingRouter = require('./routes/bookingRoutes');
 
 const app = express();
 
-
 app.enable('trust proxy');
 
 //Setting up PUG Template Engine.
@@ -26,6 +26,11 @@ app.set('view engine', 'pug');
 //path module automatically assing path to given rootDirectory.
 //So we dont have to manually declare it by "../../"
 app.set('views', path.join(__dirname, 'views'));
+
+//*Setting cors (used to enable cross-origin resource sharing)
+app.use(cors());
+
+app.options('*', cors());
 
 // 1)GLOBAL MIDDLEWARES .
 
