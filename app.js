@@ -16,6 +16,7 @@ const userRouter = require('./routes/userRoutes');
 const reviewsRouter = require('./routes/reviewsRoutes');
 const viewRouter = require('./routes/viewRoutes');
 const bookingRouter = require('./routes/bookingRoutes');
+const { webhookCheckout } = require('./controllers/tourControllers');
 
 const app = express();
 
@@ -90,6 +91,13 @@ const limiter = rateLimit({
 });
 
 app.use('/api', limiter);
+
+//^ Must implement this stripe route before express.json middleware as it need's raw data.
+app.post(
+  '/webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  webhookCheckout
+);
 
 //*Body parser , reading data from body into req.body .
 app.use(express.json({ limit: '10kb' }));

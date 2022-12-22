@@ -1,6 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Tour = require('../models/tourModel');
 const Booking = require('../models/bookingModel');
+const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
 // const AppError = require('../utils/appError');
@@ -18,9 +19,10 @@ exports.getCheckOutSession = catchAsync(async (req, res, next) => {
     mode: 'payment',
     //if Checkout Successfull will 'get' to this url.
     //passing data through query String.
-    success_url: `${req.protocol}://${req.get('host')}/?tour=${
-      req.params.tourId
-    }&user=${req.user.id}&price=${tour.price}`,
+    // success_url: `${req.protocol}://${req.get('host')}/my-tours/?tour=${
+    //   req.params.tourId
+    // }&user=${req.user.id}&price=${tour.price}`,
+    success_url: `${req.protocol}://${req.get('host')}/my-tours/`,
     cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
     customer_email: req.user.email,
     client_reference_id: req.params.tourId,
@@ -66,21 +68,51 @@ exports.getCheckOutSession = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.createBookingCheckout = catchAsync(async (req, res, next) => {
-  //^This is temporary , because eveyone can make booking without paying.
-  const { tour, user, price } = req.query;
-  console.log(tour, user, price);
-  if (!tour || !user || !price) return next(); //If any not present passing to next Overview page.
-  await Booking.create({
+// exports.createBookingCheckout = catchAsync(async (req, res, next) => {
+//   //^This is temporary , because eveyone can make booking without paying.
+//   const { tour, user, price } = req.query;
+//   console.log(tour, user, price);
+//   if (!tour || !user || !price) return next(); //If any not present passing to next Overview page.
+//   await Booking.create({
+//     tour,
+//     user,
+//     price,
+//   });
+//   //*'redirect' here does is basically to create a new request
+//   res.redirect(req.originalUrl.split('?')[0]);
+//   //spliting it requesting original url removing queryString for safety / better practice.
+//   //originalUrl = `${req.protocol}://${req.get('host')}/?tour=${req.params.tourId}$user=${req.user.id}$price=${tour.price}`,
+// });
+
+const createBookingCheckout = async (session) => {
+  const tour = session.client_reference_id;
+  const user = (await User.findOne({ email: session.customer_email })).id;
+  const price = session.line_items[0].price_data.unit_amount / 100;
+  console.log(price);
+  User.Booking.create({
     tour,
     user,
     price,
   });
-  //*'redirect' here does is basically to create a new request
-  res.redirect(req.originalUrl.split('?')[0]);
-  //spliting it requesting original url removing queryString for safety / better practice.
-  //originalUrl = `${req.protocol}://${req.get('host')}/?tour=${req.params.tourId}$user=${req.user.id}$price=${tour.price}`,
-});
+};
+
+exports.webhookCheckout = (req, res, next) => {
+  const signature = req.headers['stripe-signature'];
+  console.log(signature);
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    return res.status(400).send(`Webhook error :${err.message}`);
+  }
+  if (event.type === 'checkout.session.completed')
+    createBookingCheckout(event.data.object);
+  res.status(200).json({ received: true });
+};
 
 //~~~~~~~~~~~ api ~~~~~~~~//
 exports.createBooking = factory.createOne(Booking);
