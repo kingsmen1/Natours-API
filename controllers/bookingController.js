@@ -1,7 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Tour = require('../models/tourModel');
 const Booking = require('../models/bookingModel');
-// const User = require('../models/userModel');
+const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
 // const AppError = require('../utils/appError');
@@ -88,17 +88,18 @@ exports.getCheckOutSession = catchAsync(async (req, res, next) => {
 //   //originalUrl = `${req.protocol}://${req.get('host')}/?tour=${req.params.tourId}$user=${req.user.id}$price=${tour.price}`,
 // });
 
-// const createBookingCheckout = async (session) => {
-//   const tour = session.client_reference_id;
-//   const user = (await User.findOne({ email: session.customer_email })).id;
-//   const price = session.line_items[0].price_data.unit_amount / 100;
-//   console.log(price);
-//   User.Booking.create({
-//     tour,
-//     user,
-//     price,
-//   });
-// };
+const createBookingCheckout = async (session) => {
+  const { email: user } = session.customer_details;
+  const { client_reference_id: tour } = session;
+  const { amount_total: amount } = session;
+  const price = amount / 100;
+  // console.log(price);
+  User.Booking.create({
+    tour,
+    user,
+    price,
+  });
+};
 
 exports.webhookCheckout = (req, res, next) => {
   const signature = req.headers['stripe-signature'];
@@ -114,11 +115,8 @@ exports.webhookCheckout = (req, res, next) => {
     return res.status(400).send(`Webhook error :${err.message}`);
   }
   if (event.type === 'checkout.session.completed') {
-    // createBookingCheckout(event.data.object);
-    const { email } = event.data.object.customer_details;
-    const { client_reference_id: refId } = event.data.object;
-    const { amount_total: amount } = event.data.object;
-    res.status(200).json({ received: true, email, refId, amount });
+    createBookingCheckout(event.data.object);
+    res.status(200).json({ received: true });
   }
 };
 
