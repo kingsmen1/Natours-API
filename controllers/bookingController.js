@@ -37,7 +37,11 @@ exports.getCheckOutSession = catchAsync(async (req, res, next) => {
             name: `${tour.name} Tour`,
             // metadata: {
             description: tour.summary,
-            images: [`https://www.natours.dev/img/tours/${tour.imageCover}`],
+            images: [
+              `${req.protocol}://${req.get('host')}/img/tours/${
+                tour.imageCover
+              }`,
+            ],
             // },
           },
           unit_amount: tour.price * 100, //Product price * Converting it to cents.
