@@ -1,7 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Tour = require('../models/tourModel');
 const Booking = require('../models/bookingModel');
-const User = require('../models/userModel');
+// const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
 // const AppError = require('../utils/appError');
@@ -94,7 +94,7 @@ const createBookingCheckout = async (session) => {
   const { amount_total: amount } = session;
   const price = amount / 100;
   // console.log(price);
-  User.Booking.create({
+  Booking.create({
     tour,
     user,
     price,
