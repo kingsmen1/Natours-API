@@ -9,7 +9,7 @@ export const bookTour = async (tourId) => {
   try {
     //1) Get Checkout sessoin from api.
     //^ Without parameter's axios is set default to 'get'
-    const session = await axios(`/api/v1/booking/checkout-session/${tourId}`);
+    const session = await axios(`/api/v1/bookings/checkout-session/${tourId}`);
 
     //2) Create Checkout form + Charge Credit Card.
     await stripe.redirectToCheckout({
