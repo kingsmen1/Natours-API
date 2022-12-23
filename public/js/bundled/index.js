@@ -538,6 +538,7 @@ var _login = require("./login");
 var _mapbox = require("./mapbox");
 var _updateSetting = require("./updateSetting");
 var _stripe = require("./stripe");
+var _alerts = require("./alerts");
 //DOM Elements
 const mapBox = document.getElementById("map");
 const loginForm = document.querySelector(".form--login");
@@ -591,8 +592,10 @@ if (tourBookButton) tourBookButton.addEventListener("click", async (e)=>{
     const { tourId  } = e.target.dataset;
     (0, _stripe.bookTour)(tourId);
 });
+const alertMessage = document.querySelector("body").dataset.alert;
+if (alertMessage) (0, _alerts.showAlert)("success", alertMessage, 20);
 
-},{"core-js/modules/es.regexp.flags.js":"gSXXb","core-js/modules/web.immediate.js":"49tUX","./login":"7yHem","./mapbox":"3zDlz","./updateSetting":"6GcZk","./stripe":"10tSC"}],"gSXXb":[function(require,module,exports) {
+},{"core-js/modules/es.regexp.flags.js":"gSXXb","core-js/modules/web.immediate.js":"49tUX","./login":"7yHem","./mapbox":"3zDlz","./updateSetting":"6GcZk","./stripe":"10tSC","./alerts":"6Mcnf"}],"gSXXb":[function(require,module,exports) {
 var global = require("../internals/global");
 var DESCRIPTORS = require("../internals/descriptors");
 var defineBuiltInAccessor = require("../internals/define-built-in-accessor");
@@ -5936,11 +5939,11 @@ const hideAlert = ()=>{
     const el = document.querySelector(".alert");
     if (el) el.parentElement.removeChild(el);
 };
-const showAlert = (type, msg)=>{
+const showAlert = (type, msg, time = 7)=>{
     hideAlert();
     const markup = `<div class="alert alert--${type}">${msg}</div>`;
     document.querySelector("body").insertAdjacentHTML("afterbegin", markup);
-    window.setTimeout(hideAlert, 5000);
+    window.setTimeout(hideAlert, time * 1000);
 };
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3zDlz":[function(require,module,exports) {
